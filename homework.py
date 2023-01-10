@@ -5,9 +5,9 @@ import telegram
 import time
 
 from dotenv import load_dotenv
+from exceptions import ParseStatusError
 from http import HTTPStatus
 from logging import StreamHandler
-from exceptions import ParseStatusError
 from typing import Union
 
 load_dotenv()
@@ -36,8 +36,7 @@ HOMEWORK_VERDICTS = {
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    if all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
-        return True
+    return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
 def send_message(bot: telegram.Bot, message: str) -> None:
@@ -48,7 +47,7 @@ def send_message(bot: telegram.Bot, message: str) -> None:
     """
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
-        logger.debug(f'Бот отправил сообщение {message}')
+        logger.debug(f'Бот отправил сообщение. {message}')
     except Exception as error:
         logger.error(error)
 
@@ -61,17 +60,18 @@ def get_api_answer(current_timestamp: int) -> Union[dict, str]:
     приведя его из формата JSON к типам данных Python.
     """
     timestamp = current_timestamp or int(time.time())
-    params = {'from date': timestamp}
+    params = {'from_date': timestamp}
     try:
         homework_statuses = requests.get(ENDPOINT,
                                          headers=HEADERS,
                                          params=params
                                          )
+        print(homework_statuses)
     except Exception as error:
         logger.error(f'Ошибка при запросе к основному API: {error}')
         raise Exception(f'Ошибка при запросе к основному API: {error}')
     if homework_statuses.status_code != HTTPStatus.OK:
-        status_code = homework_statuses.status.code
+        status_code = homework_statuses.status_code
         logger.error(f'Ошибка {status_code}')
         raise Exception(f'Ошибка {status_code}')
     try:
@@ -102,7 +102,7 @@ def check_response(response):
     return response['homeworks']
 
 
-def parse_status(homework):
+def parse_status(homework: dict) -> str:
     """Извлечение статуса домашней работы.
 
     В качестве параметра функция получает только
@@ -112,7 +112,7 @@ def parse_status(homework):
     содержащую один из вердиктов словаря HOMEWORK_VERDICTS.
     """
     if not homework.get('homework_name'):
-        homework_name = 'No_name'
+        homework_name = 'NoName'
         logger.warning('Отсутствует имя домашней работы')
         raise KeyError('Отсутствует имя домашней работы')
     else:
@@ -140,7 +140,6 @@ def main():
     last_send = {
         'error': None,
     }
-
     if not check_tokens():
         logger.critical('Отсутствует переменная окружения')
         exit()
