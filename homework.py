@@ -12,20 +12,12 @@ from typing import Union
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = StreamHandler()
-logger.addHandler(handler)
-formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
-handler.setFormatter(formatter)
-
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
-
 
 HOMEWORK_VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
@@ -66,7 +58,6 @@ def get_api_answer(current_timestamp: int) -> Union[dict, str]:
                                          headers=HEADERS,
                                          params=params
                                          )
-        print(homework_statuses)
     except Exception as error:
         logger.error(f'Ошибка при запросе к основному API: {error}')
         raise Exception(f'Ошибка при запросе к основному API: {error}')
@@ -113,8 +104,9 @@ def parse_status(homework: dict) -> str:
     """
     if not homework.get('homework_name'):
         homework_name = 'NoName'
-        logger.warning('Отсутствует имя домашней работы')
-        raise KeyError('Отсутствует имя домашней работы')
+        message = 'Отсутствует имя домашней работы'
+        logger.warning(message)
+        raise KeyError(message)
     else:
         homework_name = homework.get('homework_name')
 
@@ -172,4 +164,11 @@ def main():
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    handler = StreamHandler()
+    logger.addHandler(handler)
+    formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+    handler.setFormatter(formatter)
+
     main()
