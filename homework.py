@@ -12,12 +12,15 @@ from typing import Union
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
+
 
 HOMEWORK_VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
@@ -164,7 +167,6 @@ def main():
 
 
 if __name__ == '__main__':
-    logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     handler = StreamHandler()
     logger.addHandler(handler)
